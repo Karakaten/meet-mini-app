@@ -1,95 +1,71 @@
-<!DOCTYPE html><html lang="ru"><head>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Заявка на встречу</title>
+  <title>Заявка</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-    body { margin: 0; background: linear-gradient(160deg, #5b2b82, #2b2b2b); color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .card { background: #1f1f1f; border-radius: 20px; padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; }
-    input { width: 100%; padding: 14px; margin-top: 12px; border-radius: 12px; border: none; font-size: 16px; background: #333; color: #fff; }
-    .formats { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-    .format-btn { flex: 1; padding: 12px; border-radius: 14px; background: #333; border: 2px solid transparent; color: #fff; cursor: pointer; min-width: 80px; }
+    * { box-sizing: border-box; font-family: sans-serif; }
+    body { margin: 0; background: #1a1a1a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: #262626; border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #333; color: #fff; }
+    .formats { display: flex; gap: 8px; margin: 10px 0; }
+    .format-btn { flex: 1; padding: 10px; border-radius: 8px; background: #333; border: 2px solid transparent; color: #fff; cursor: pointer; font-size: 14px; }
     .format-btn.active { border-color: #a855f7; background: #3b1b5a; }
-    .submit { margin-top: 20px; width: 100%; padding: 14px; border-radius: 14px; border: none; background: #a855f7; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .submit:disabled { opacity: 0.3; }
+    .submit { width: 100%; padding: 15px; margin-top: 15px; border-radius: 8px; border: none; background: #a855f7; color: #fff; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>💜 Запрос легенде</h1>
-    <p>Заполни всё, чтобы я подумал...</p>
-    <input id="name" placeholder="👤 Твое имя" />
-    <input id="date" placeholder="📅 Когда (день, время)" />
+    <h2>🚀 Заявка</h2>
+    <input id="name" placeholder="Твое имя" />
+    <input id="date" placeholder="Когда?" />
     <div class="formats">
-      <button class="format-btn" data-format="🍺 Пиво">🍺 Пиво</button>
-      <button class="format-btn" data-format="🏠 В гости">🏠 В гости</button>
-      <button class="format-btn" data-format="🚨 Срочно">🚨 Срочно</button>
+      <button class="format-btn" onclick="setFormat(this, '🍺 Пиво')">🍺 Пиво</button>
+      <button class="format-btn" onclick="setFormat(this, '🏠 В гости')">🏠 В гости</button>
     </div>
-    <button class="submit" id="submit" disabled>Отправить заявку 🚀</button>
+    <button class="submit" onclick="sendData()">Отправить 🚀</button>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // ТВОИ ДАННЫЕ (ВСТАВЬ СВОЙ ТОКЕН ТУТ)
+    let selectedFormat = "Не выбран";
     const BOT_TOKEN = '8522129872:AAGAIJn9K05673T86y4boB8drP8MYwwNCN4';
     const MY_ID = '269547089';
 
-    let selectedFormat = null;
-    const buttons = document.querySelectorAll('.format-btn');
-    const submitBtn = document.getElementById('submit');
-
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedFormat = btn.dataset.format;
-        checkReady();
-      });
-    });
-
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', checkReady));
-
-    function checkReady() {
-      const name = document.getElementById('name').value;
-      const date = document.getElementById('date').value;
-      submitBtn.disabled = !(name && date && selectedFormat);
+    function setFormat(el, val) {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedFormat = val;
     }
 
-    submitBtn.addEventListener('click', async () => {
-      const name = document.getElementById('name').value;
-      const date = document.getElementById('date').value;
-      const user = tg.initDataUnsafe?.user?.username || "без ника";
+    async function sendData() {
+      const name = document.getElementById('name').value || "Аноним";
+      const date = document.getElementById('date').value || "Не указано";
+      const user = tg.initDataUnsafe?.user?.username || "нет_ника";
       
-      const message = `📩 **НОВАЯ ЗАЯВКА!**\n\n👤 От: ${name} (@${user})\n📅 Когда: ${date}\n📍 Формат: ${selectedFormat}`;
+      const text = `📩 НОВАЯ ЗАЯВКА!\n👤 От: ${name} (@${user})\n📅 Когда: ${date}\n📍 Формат: ${selectedFormat}`;
       
-      submitBtn.innerText = "Отправляю...";
-      submitBtn.disabled = true;
-
-      
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      try {
+        const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            chat_id: MY_ID, 
-            text: message, 
-            parse_mode: 'Markdown' 
-          })
+          body: JSON.stringify({ chat_id: MY_ID, text: text })
         });
         
-        if (!response.ok) {
-           const errorData = await response.json();
-           alert("Ошибка бота: " + errorData.description);
+        if (resp.ok) {
+          tg.close();
         } else {
-           tg.close();
+          const err = await resp.json();
+          alert("Ошибка бота: " + err.description);
         }
       } catch (e) {
         alert("Сетевая ошибка: " + e.message);
-        submitBtn.innerText = "Отправить заявку 🚀";
-        submitBtn.disabled = false;
       }
+    }
   </script>
-</body></html>
+</body>
+</html>
