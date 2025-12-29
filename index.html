@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Заявка на встречу</title>
+
+  <!-- Telegram SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(160deg, #5b2b82, #2b2b2b);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: #1f1f1f;
+      border-radius: 20px;
+      padding: 24px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 22px;
+      text-align: center;
+    }
+
+    p {
+      text-align: center;
+      color: #bbb;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+    }
+
+    .formats {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .format-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      background: #333;
+      border: 2px solid transparent;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .format-btn.active {
+      border-color: #a855f7;
+      background: #3b1b5a;
+    }
+
+    .submit {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: #a855f7;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .submit:disabled {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>💜 Запрос на встречу</h1>
+    <p>Оставь заявку, и, возможно,<br>легенда согласится 😏</p>
+
+    <input id="name" placeholder="👤 Как тебя зовут?" />
+    <input id="date" placeholder="📅 Когда встречаемся?" />
+
+    <div class="formats">
+      <button class="format-btn" data-format="🍺 Пиво">🍺 Пиво</button>
+      <button class="format-btn" data-format="🏠 В гости">🏠 В гости</button>
+      <button class="format-btn" data-format="🚨 Срочно">🚨 Срочно</button>
+    </div>
+
+    <button class="submit" id="submit" disabled>
+      Отправить заявку 🚀
+    </button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let selectedFormat = null;
+
+    const buttons = document.querySelectorAll('.format-btn');
+    const submitBtn = document.getElementById('submit');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedFormat = btn.dataset.format;
+        checkReady();
+      });
+    });
+
+    document.getElementById('name').addEventListener('input', checkReady);
+    document.getElementById('date').addEventListener('input', checkReady);
+
+    function checkReady() {
+      const name = document.getElementById('name').value;
+      const date = document.getElementById('date').value;
+      submitBtn.disabled = !(name && date && selectedFormat);
+    }
+
+    submitBtn.addEventListener('click', () => {
+      const data = {
+        name: document.getElementById('name').value,
+        date: document.getElementById('date').value,
+        format: selectedFormat,
+      };
+
+      tg.sendData(JSON.stringify(data));
+      tg.close();
+    });
+  </script>
+</body>
+</html>
