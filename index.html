@@ -3,69 +3,108 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Заявка</title>
+  <title>Заявка Легенде</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; font-family: sans-serif; }
-    body { margin: 0; background: #1a1a1a; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .card { background: #262626; border-radius: 16px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
-    input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: #333; color: #fff; }
-    .formats { display: flex; gap: 8px; margin: 10px 0; }
-    .format-btn { flex: 1; padding: 10px; border-radius: 8px; background: #333; border: 2px solid transparent; color: #fff; cursor: pointer; font-size: 14px; }
-    .format-btn.active { border-color: #a855f7; background: #3b1b5a; }
-    .submit { width: 100%; padding: 15px; margin-top: 15px; border-radius: 8px; border: none; background: #a855f7; color: #fff; font-weight: bold; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>🚀 Заявка</h2>
-    <input id="name" placeholder="Твое имя" />
-    <input id="date" placeholder="Когда?" />
-    <div class="formats">
-      <button class="format-btn" onclick="setFormat(this, '🍺 Пиво')">🍺 Пиво</button>
-      <button class="format-btn" onclick="setFormat(this, '🏠 В гости')">🏠 В гости</button>
-    </div>
-    <button class="submit" onclick="sendData()">Отправить 🚀</button>
-  </div>
-
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    let selectedFormat = "Не выбран";
-    const BOT_TOKEN = '8522129872:AAGAIJn9K05673T86y4boB8drP8MYwwNCN4';
-    const MY_ID = '269547089';
-
-    function setFormat(el, val) {
-      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
-      el.classList.add('active');
-      selectedFormat = val;
+    :root {
+      --primary: #a855f7;
+      --primary-hover: #9333ea;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
     }
 
-    async function sendData() {
-      const name = document.getElementById('name').value || "Аноним";
-      const date = document.getElementById('date').value || "Не указано";
-      const user = tg.initDataUnsafe?.user?.username || "нет_ника";
-      
-      const text = `📩 НОВАЯ ЗАЯВКА!\n👤 От: ${name} (@${user})\n📅 Когда: ${date}\n📍 Формат: ${selectedFormat}`;
-      
-      try {
-        const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: MY_ID, text: text })
-        });
-        
-        if (resp.ok) {
-          tg.close();
-        } else {
-          const err = await resp.json();
-          alert("Ошибка бота: " + err.description);
-        }
-      } catch (e) {
-        alert("Сетевая ошибка: " + e.message);
-      }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+    body { 
+      margin: 0; 
+      background: radial-gradient(circle at top right, #1e1b4b, #0f172a); 
+      color: #f8fafc; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      padding: 20px;
+      overflow: hidden;
     }
-  </script>
-</body>
-</html>
+
+    .card { 
+      background: var(--card-bg); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px; 
+      padding: 30px; 
+      width: 100%; 
+      max-width: 380px; 
+      text-align: center; 
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 { font-size: 28px; margin-bottom: 8px; background: linear-gradient(to right, #f472b6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p { color: #94a3b8; margin-bottom: 25px; font-size: 14px; }
+
+    .input-group { position: relative; margin-bottom: 15px; }
+    input { 
+      width: 100%; 
+      padding: 14px; 
+      border-radius: 12px; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      background: rgba(15, 23, 42, 0.6); 
+      color: #fff; 
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2); }
+
+    .formats-label { text-align: left; font-size: 12px; color: #64748b; margin: 15px 0 8px 5px; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .formats { display: flex; gap: 10px; margin-bottom: 20px; }
+    .format-btn { 
+      flex: 1; 
+      padding: 12px 5px; 
+      border-radius: 12px; 
+      background: rgba(51, 65, 85, 0.4); 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      color: #fff; 
+      cursor: pointer; 
+      font-size: 13px; 
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .format-btn span { font-size: 20px; }
+    .format-btn.active { 
+      background: var(--primary); 
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
+    }
+
+    .submit { 
+      width: 100%; 
+      padding: 16px; 
+      border-radius: 16px; 
+      border: none; 
+      background: linear-gradient(45deg, #a855f7, #ec4899); 
+      color: #fff; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: all 0.3s;
+      box-shadow: 0 4px 14px 0 rgba(168, 85, 247, 0.39);
+    }
+    .submit:active { transform: scale(0.98); }
+    
+    /* Декор */
+    .blob {
+      position: absolute;
+      width: 200px;
+      height:
