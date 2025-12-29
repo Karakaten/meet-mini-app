@@ -107,4 +107,87 @@
     .blob {
       position: absolute;
       width: 200px;
-      height:
+      height: 200px;
+      background: var(--primary);
+      filter: blur(80px);
+      z-index: -1;
+      border-radius: 50%;
+      opacity: 0.2;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob" style="top: 10%; left: 10%;"></div>
+  <div class="blob" style="bottom: 10%; right: 10%; background: #ec4899;"></div>
+
+  <div class="card">
+    <h1>✨ Предложение</h1>
+    <p>Заполни форму, и я дам знать!</p>
+    
+    <div class="input-group">
+      <input id="name" placeholder="👤 Как тебя зовут?" />
+    </div>
+    <div class="input-group">
+      <input id="date" placeholder="📅 Когда встретимся?" />
+    </div>
+
+    <div class="formats-label">Выбери формат</div>
+    <div class="formats">
+      <button class="format-btn" onclick="setFormat(this, '🍺 Пиво')">
+        <span>🍺</span> Пиво
+      </button>
+      <button class="format-btn" onclick="setFormat(this, '🏠 В гости')">
+        <span>🏠</span> Гости
+      </button>
+      <button class="format-btn" onclick="setFormat(this, '🚨 Срочно')">
+        <span>🚨</span> Срочно
+      </button>
+    </div>
+
+    <button class="submit" onclick="sendData()">Отправить Мастеру 🚀</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.headerColor = '#0f172a';
+
+    let selectedFormat = "Не выбран";
+    const BOT_TOKEN = '8522129872:AAGAIJn9K05673T86y4boB8drP8MYwwNCN4';
+    const MY_ID = '269547089';
+
+    function setFormat(el, val) {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedFormat = val;
+      if (window.navigator.vibrate) window.navigator.vibrate(20); // Легкая вибрация
+    }
+
+    async function sendData() {
+      const name = document.getElementById('name').value || "Таинственный гость";
+      const date = document.getElementById('date').value || "Время не выбрано";
+      const user = tg.initDataUnsafe?.user?.username || "hidden";
+      
+      const text = `🎉 **НОВАЯ ЗАЯВКА!**\n\n👤 **Кто:** ${name}\n✈️ **Тг:** @${user}\n📅 **Когда:** ${date}\n📍 **Формат:** ${selectedFormat}`;
+      
+      const btn = document.querySelector('.submit');
+      btn.innerText = "Улетает... 🚀";
+      btn.style.opacity = "0.7";
+
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: MY_ID, text: text, parse_mode: 'Markdown' })
+        });
+        tg.HapticFeedback.notificationOccurred('success'); // Виброотклик успеха
+        tg.close();
+      } catch (e) {
+        alert("Ошибка сети!");
+        btn.innerText = "Попробовать еще раз 🚀";
+        btn.style.opacity = "1";
+      }
+    }
+  </script>
+</body>
+</html>
