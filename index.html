@@ -8,13 +8,13 @@
   <style>
     :root { --primary: #a855f7; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); }
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { margin: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow: hidden; }
+    body { margin: 0; background: radial-gradient(circle at top right, #1e1b4b, #0f172a); color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-x: hidden; }
     .card { background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 25px; width: 100%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
     h1 { font-size: 26px; margin: 0 0 5px 0; background: linear-gradient(to right, #f472b6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
     p { color: #94a3b8; margin-bottom: 20px; font-size: 14px; text-align: center; }
     .label { font-size: 11px; color: #64748b; margin: 10px 0 5px 5px; text-transform: uppercase; letter-spacing: 1px; display: block; }
-    input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(15, 23, 42, 0.6); color: #fff; font-size: 16px; margin-bottom: 10px; transition: 0.3s; }
-    input:focus { outline: none; border-color: var(--primary); }
+    input, select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(15, 23, 42, 0.6); color: #fff; font-size: 16px; margin-bottom: 10px; transition: 0.3s; appearance: none; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
     input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     .row { display: flex; gap: 10px; }
     .row > div { flex: 1; }
@@ -27,15 +27,28 @@
 </head>
 <body>
   <div class="card">
-    <h1>✨ Предложение</h1>
-    <p>Заявка упадет в ТГ и Календарь</p>
-    <span class="label">Твое имя</span>
-    <input id="name" type="text" placeholder="👤 Как тебя зовут?" />
+    <h1>✨ Заявка</h1>
+    <p>Настрой время встречи</p>
+    
+    <span class="label">Имя</span>
+    <input id="name" type="text" placeholder="👤 Твое имя" />
+    
     <div class="row">
       <div><span class="label">Дата</span><input id="date" type="date" /></div>
-      <div><span class="label">Время</span><input id="time" type="time" /></div>
+      <div><span class="label">Начало</span><input id="time" type="time" /></div>
     </div>
-    <span class="label">Формат встречи</span>
+
+    <span class="label">Длительность</span>
+    <select id="duration">
+      <option value="30">30 минут</option>
+      <option value="60" selected>1 час</option>
+      <option value="90">1.5 часа</option>
+      <option value="120">2 часа</option>
+      <option value="180">3 часа</option>
+      <option value="1440">Весь день</option>
+    </select>
+
+    <span class="label">Формат</span>
     <div class="formats">
       <button class="format-btn" onclick="setFormat(this, '🍺 Пиво')"><span>🍺</span>Пиво</button>
       <button class="format-btn" onclick="setFormat(this, '🏠 В гости')"><span>🏠</span>В гости</button>
@@ -51,8 +64,7 @@
     let selectedFormat = "Не выбран";
     const BOT_TOKEN = '8522129872:AAGAIJn9K05673T86y4boB8drP8MYwwNCN4';
     const MY_ID = '269547089';
-    // ВСТАВЬ СВОЙ URL НИЖЕ
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4oHdLEXuQTN_dOEB1PC9x1QFmaDPvo0XEuT3HSSA3g-FGxrZXpezlRUq5g0HiqxEE/exec'; 
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/library/d/1Mef1hHRIc6LK6r58yMZw397unRXJnPT59KphtEm2cMdlBcj46MoVoZr_/1'; 
 
     document.getElementById('date').valueAsDate = new Date();
 
@@ -67,22 +79,25 @@
       const name = document.getElementById('name').value || "Аноним";
       const date = document.getElementById('date').value;
       const time = document.getElementById('time').value || "12:00";
+      const duration = document.getElementById('duration').value;
+      const durationText = document.getElementById('duration').options[document.getElementById('duration').selectedIndex].text;
+      
       let username = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? (tg.initDataUnsafe.user.username || "User") : "User";
       
       const btn = document.getElementById('main-btn');
-      btn.innerText = "Синхронизация...";
+      btn.innerText = "Создаю встречу...";
       btn.disabled = true;
 
       try {
-        // 1. Отправка в Google Календарь
+        // 1. В Календарь
         fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          body: JSON.stringify({ name, date, time, format: selectedFormat, username })
+          body: JSON.stringify({ name, date, time, duration, format: selectedFormat, username })
         });
 
-        // 2. Отправка в Telegram
-        const text = `<b>📅 НОВАЯ ЗАПИСЬ!</b>\n\n👤 <b>Кто:</b> ${name}\n✈️ <b>Тг:</b> @${username}\n📅 <b>Когда:</b> ${date} в ${time}\n📍 <b>Формат:</b> ${selectedFormat}`;
+        // 2. В Telegram
+        const text = `<b>📅 НОВАЯ ВСТРЕЧА!</b>\n\n👤 <b>Кто:</b> ${name}\n📅 <b>Когда:</b> ${date} в ${time}\n⏳ <b>Длительность:</b> ${durationText}\n📍 <b>Формат:</b> ${selectedFormat}`;
         
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
@@ -90,11 +105,11 @@
           body: JSON.stringify({ chat_id: MY_ID, text: text, parse_mode: 'HTML' })
         });
 
-        if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         tg.close();
       } catch (e) {
-        tg.sendData("Ошибка, но заявка: " + name);
-        tg.close();
+        alert("Ошибка!");
+        btn.disabled = false;
+        btn.innerText = "Забронировать 🚀";
       }
     }
   </script>
